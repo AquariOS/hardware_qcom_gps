@@ -1,7 +1,17 @@
 ifeq ($(call my-dir),$(call project-path-for,qcom-gps))
+#set TARGET_USES_HARDWARE_QCOM_GPS to false to disable this project.
 
-# TODO:  Find a better way to separate build configs for ADP vs non-ADP devices
-ifneq ($(BOARD_IS_AUTOMOTIVE),true)
+ifeq ($(TARGET_USES_HARDWARE_QCOM_GPS),)
+  ifneq ($(filter sdm845 sdm710, $(TARGET_BOARD_PLATFORM)),)
+    TARGET_USES_HARDWARE_QCOM_GPS := false
+  else ifeq ($(BOARD_IS_AUTOMOTIVE),true)
+    TARGET_USES_HARDWARE_QCOM_GPS := false
+  else
+    TARGET_USES_HARDWARE_QCOM_GPS := true
+  endif
+endif
+
+ifeq ($(TARGET_USES_HARDWARE_QCOM_GPS),true)
   ifneq ($(BOARD_VENDOR_QCOM_GPS_LOC_API_HARDWARE),)
     LOCAL_PATH := $(call my-dir)
     ifeq ($(BOARD_VENDOR_QCOM_LOC_PDK_FEATURE_SET),true)
@@ -22,9 +32,7 @@ ifneq ($(BOARD_IS_AUTOMOTIVE),true)
       endif #TARGET_BOARD_PLATFORM
 
     else
-      ifneq ($(filter sdm845 sdm710,$(TARGET_BOARD_PLATFORM)),)
-        include $(call all-named-subdir-makefiles,$(TARGET_BOARD_PLATFORM))
-      else ifneq ($(filter msm8909 msm8226 ,$(TARGET_BOARD_PLATFORM)),)
+      ifneq ($(filter msm8909 msm8226 ,$(TARGET_BOARD_PLATFORM)),)
         ifeq ($(TARGET_SUPPORTS_QCOM_3100),true)
           # For SD3100.
           include $(call all-named-subdir-makefiles,msm8909w_3100)
